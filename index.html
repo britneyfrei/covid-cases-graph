@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+      crossorigin="anonymous"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <title>COVID 19</title>
+    <style>
+      .container {
+        padding: 2rem;
+        width: 75%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <select id="country" class="form-select" onchange="OverTimeCases()">
+        <option selected>Choose a country</option>
+        <option value="1">united-kingdom</option>
+        <option value="2">south-africa</option>
+        <option value="3">canada</option>
+        <option value="4">china</option>
+        <option value="5">mexico</option>
+      </select>
+      <canvas id="myChart"></canvas>
+    </div>
+    <script>
+      var countryCasesChart = "";
+      async function getData(url) {
+        const xlabels = [];
+        const ydata = [];
+        const response = await fetch(url);
+        const data = await response.json();
+        for (let i = 0; i < data.length; i++) {
+          let date = data[i].Date.split("T");
+          xlabels.push(date[0]);
+          ydata.push(data[i].Cases);
+        }
+        return { xlabels, ydata };
+      }
+      async function OverTimeCases() {
+        if (countryCasesChart != "") {
+          countryCasesChart.destroy();
+        }
+        const select = document.getElementById("country");
+        const country = select.options[select.selectedIndex].text;
+        const url =
+          "https://api.covid19api.com/total/dayone/country/" +
+          country +
+          "/status/confirmed";
+        const data = await getData(url);
+        const myChart = document.getElementById("myChart").getContext("2d");
+        countryCasesChart = new Chart(myChart, {
+          type: "line",
+          data: {
+            labels: data.xlabels,
+            datasets: [
+              {
+                label: "Total Confirmed Cases",
+                data: data.ydata,
+                backgroundColor: "#ADD8E6",
+                hoverBorderColor: "black",
+                fill: true,
+              },
+            ],
+          },
+          options: {
+            plugins: {
+              title: {
+                display: true,
+                text: "Total Confirmed Cases Since Day One in " + country,
+                font: {
+                  size: 25,
+                },
+              },
+            },
+          },
+        });
+      }
+    </script>
+  </body>
+</html>
